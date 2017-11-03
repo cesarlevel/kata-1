@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Kata_1</title>
+    <script src="https://unpkg.com/vue"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+    <link rel="stylesheet" href="main.css" type="text/css">
+</head>
+<body>
+    <div id="app">
+        <div class="form-login" id="form-login">
+            <div class="error-message">{{loginError}}</div>
+            <input type="text" name="user" placeholder="Email or Username" v-model="loginUser" @keyup.enter="submit('login', $event)">
+            <input type="password" name="password" placeholder="Password" v-model="loginPassword" @keyup.enter="submit('login', $event)">
+            <input type="submit" @click="submit" v-model="loginSubmit" id="loginSubmit">
+        </div>
+        <div class="rebilly-response"><p>{{rebillyResponse}}</p></div>
+    </div>
+</body>
+<script>
+var submit_login = 'Login';
+var app = new Vue({
+  el: '#app',
+  data: {
+      message: 'Hello Vue!',
+      loginUser: '',
+      loginPassword: '',
+      loginError: '',
+      loginSubmit: submit_login,
+      rebillyResponse: ''
+  },
+  methods: {
+      submit: function() {
+          axios.post('https://api.rebilly.com/v2.1/signin', {
+              email: this.loginUser,
+              password: this.loginPassword
+          })
+          .then(function (response) {
+              console.log(response);
+              axios.get('https://api.rebilly.com/v2.1/users/' + response.data.userId, {
+                  headers: {'AUTHORIZATION': 'Bearer ' + response.data.token}
+              })
+              .then(function (response) {
+                  console.log(response);
+                  this.app.rebillyResponse = 'Welcome back to Rebilly ' + response.data.firstName + ' ' + response.data.lastName;
+              })
+              .catch(function (error) {
+                  console.log(error);
+              });
+          })
+          .catch(function (error) {
+              this.app.loginError = "Invalid email and/or password."
+              console.log(error);
+          });
+      }
+  }
+});
+</script>
+</html>
